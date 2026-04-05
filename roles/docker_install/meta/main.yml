@@ -7,9 +7,9 @@ galaxy_info:
   min_ansible_version: "2.10"
   platforms:
     - name: Ubuntu
-      versions: ["20.04", "22.04", "24.04"]
+      versions: ["all"]
     - name: Debian
-      versions: ["11", "12"]
+      versions: ["all"]
     - name: EL
-      versions: ["8", "9"]
+      versions: ["all"]
 dependencies: []

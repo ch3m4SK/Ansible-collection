@@ -15,7 +15,7 @@
     group: root
   tags: initial_setup
 
-- name: Create sudoers entry for {{ initial_setup_user }}
+- name: Create sudoers entry for user
   ansible.builtin.copy:
     dest: "/etc/sudoers.d/{{ initial_setup_user }}"
     content: "{{ initial_setup_user }} ALL=(ALL) NOPASSWD:ALL\n"
@@ -25,7 +25,7 @@
     validate: visudo -cf %s
   tags: initial_setup
 
-- name: Ensure user {{ initial_setup_user }} exists
+- name: Ensure setup user exists
   ansible.builtin.user:
     name: "{{ initial_setup_user }}"
     state: present
@@ -33,7 +33,7 @@
     create_home: true
   tags: initial_setup
 
-- name: Ensure .ssh directory exists for {{ initial_setup_user }}
+- name: Ensure .ssh directory exists for setup user
   ansible.builtin.file:
     path: "/home/{{ initial_setup_user }}/.ssh"
     state: directory
@@ -42,7 +42,7 @@
     mode: "0700"
   tags: initial_setup
 
-- name: Add SSH public key to authorized_keys for {{ initial_setup_user }}
+- name: Add SSH public key to authorized_keys
   ansible.posix.authorized_key:
     user: "{{ initial_setup_user }}"
     state: present
