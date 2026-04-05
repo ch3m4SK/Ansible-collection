@@ -19,6 +19,7 @@ group_vars/*/vault.yml
 host_vars/*/vault.yml
 inventory/secrets*
 inventory/private*
+inventory/hosts
 
 # Installed collections and roles (managed via requirements.yml)
 collections/
@@ -40,3 +41,4 @@ collections/
 # Logs and temp files
 *.log
 *.tmp
+inventory/hosts
