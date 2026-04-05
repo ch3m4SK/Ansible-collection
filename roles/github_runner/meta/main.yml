@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: github_runner
+  author: chema
+  description: Install and register a GitHub Actions self-hosted runner as a systemd service
+  license: MIT
+  min_ansible_version: "2.10"
+  platforms:
+    - name: Ubuntu
+      versions: ["20.04", "22.04", "24.04"]
+    - name: Debian
+      versions: ["11", "12"]
+dependencies:
+  - role: docker_install

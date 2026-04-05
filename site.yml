@@ -1,0 +1,12 @@
+---
+- name: Machine Setup
+  hosts: machines
+  become: true
+
+  roles:
+    - role: initial_setup
+      tags: initial_setup
+    - role: docker_install
+      tags: docker_install
+    - role: github_runner
+      tags: github_runner

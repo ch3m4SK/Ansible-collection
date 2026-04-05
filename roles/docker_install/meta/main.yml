@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: docker_install
+  author: chema
+  description: Install Docker CE from the official Docker repository
+  license: MIT
+  min_ansible_version: "2.10"
+  platforms:
+    - name: Ubuntu
+      versions: ["20.04", "22.04", "24.04"]
+    - name: Debian
+      versions: ["11", "12"]
+    - name: EL
+      versions: ["8", "9"]
+dependencies: []

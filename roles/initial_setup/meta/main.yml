@@ -1,0 +1,13 @@
+---
+galaxy_info:
+  role_name: initial_setup
+  author: chema
+  description: Initial machine setup — sudoers and SSH authorized key for chema
+  license: MIT
+  min_ansible_version: "2.10"
+  platforms:
+    - name: Ubuntu
+      versions: ["20.04", "22.04", "24.04"]
+    - name: Debian
+      versions: ["11", "12"]
+dependencies: []

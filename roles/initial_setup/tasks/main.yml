@@ -1,0 +1,50 @@
+---
+- name: Ensure sudo is installed
+  ansible.builtin.apt:
+    name: sudo
+    state: present
+    update_cache: true
+  tags: initial_setup
+
+- name: Ensure sudoers.d directory exists
+  ansible.builtin.file:
+    path: /etc/sudoers.d
+    state: directory
+    mode: "0750"
+    owner: root
+    group: root
+  tags: initial_setup
+
+- name: Create sudoers entry for {{ initial_setup_user }}
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ initial_setup_user }}"
+    content: "{{ initial_setup_user }} ALL=(ALL) NOPASSWD:ALL\n"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: visudo -cf %s
+  tags: initial_setup
+
+- name: Ensure user {{ initial_setup_user }} exists
+  ansible.builtin.user:
+    name: "{{ initial_setup_user }}"
+    state: present
+    shell: /bin/bash
+    create_home: true
+  tags: initial_setup
+
+- name: Ensure .ssh directory exists for {{ initial_setup_user }}
+  ansible.builtin.file:
+    path: "/home/{{ initial_setup_user }}/.ssh"
+    state: directory
+    owner: "{{ initial_setup_user }}"
+    group: "{{ initial_setup_user }}"
+    mode: "0700"
+  tags: initial_setup
+
+- name: Add SSH public key to authorized_keys for {{ initial_setup_user }}
+  ansible.posix.authorized_key:
+    user: "{{ initial_setup_user }}"
+    state: present
+    key: "{{ lookup('file', initial_setup_ssh_pubkey_path) }}"
+  tags: initial_setup

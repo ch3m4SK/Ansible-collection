@@ -1,0 +1,9 @@
+---
+docker_install_users: [chema]
+docker_install_edition: ce
+docker_install_packages:
+  - "docker-{{ docker_install_edition }}"
+  - "docker-{{ docker_install_edition }}-cli"
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin

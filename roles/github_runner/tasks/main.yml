@@ -1,0 +1,182 @@
+---
+- name: Check if runner is already configured
+  ansible.builtin.stat:
+    path: "{{ github_runner_install_dir }}/.runner"
+  register: runner_configured
+  tags: github_runner
+
+- name: Ask for runner URL if not provided
+  ansible.builtin.include_role:
+    name: ask
+  vars:
+    ask_var: github_runner_url
+    ask_prompt: "Repository URL (e.g. https://github.com/org/repo)"
+    ask_private: false
+  when:
+    - not runner_configured.stat.exists
+    - github_runner_url is not defined
+  tags: github_runner
+
+- name: Ask for runner token if not provided
+  ansible.builtin.include_role:
+    name: ask
+  vars:
+    ask_var: github_runner_token
+    ask_prompt: "Runner registration token"
+    ask_private: true
+  when:
+    - not runner_configured.stat.exists
+    - github_runner_token is not defined
+  tags: github_runner
+
+- name: Install base dependencies
+  ansible.builtin.apt:
+    name:
+      - git
+      - curl
+      - tar
+      - unzip
+      - jq
+      - python3
+      - python3-venv
+      - python3-pip
+    state: present
+    update_cache: true
+  tags: github_runner
+
+- name: Add NodeSource apt key
+  ansible.builtin.get_url:
+    url: "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key"
+    dest: /etc/apt/keyrings/nodesource.asc
+    mode: "0644"
+  tags: github_runner
+
+- name: Add NodeSource repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/nodesource.asc] https://deb.nodesource.com/node_{{ github_runner_node_version }}.x nodistro main"
+    filename: nodesource
+    state: present
+  tags: github_runner
+
+- name: Install Node.js {{ github_runner_node_version }}
+  ansible.builtin.apt:
+    name: nodejs
+    state: present
+    update_cache: true
+  tags: github_runner
+
+- name: Create runner install directory
+  ansible.builtin.file:
+    path: "{{ github_runner_install_dir }}"
+    state: directory
+    owner: "{{ github_runner_user }}"
+    group: "{{ github_runner_user }}"
+    mode: "0755"
+  tags: github_runner
+
+- name: Download GitHub Actions runner
+  ansible.builtin.get_url:
+    url: "https://github.com/actions/runner/releases/download/v{{ github_runner_version }}/actions-runner-{{ github_runner_arch }}-{{ github_runner_version }}.tar.gz"
+    dest: "{{ github_runner_install_dir }}/actions-runner.tar.gz"
+    checksum: "sha256:{{ github_runner_checksum }}"
+    owner: "{{ github_runner_user }}"
+    group: "{{ github_runner_user }}"
+    mode: "0644"
+  tags: github_runner
+
+- name: Extract runner package
+  ansible.builtin.unarchive:
+    src: "{{ github_runner_install_dir }}/actions-runner.tar.gz"
+    dest: "{{ github_runner_install_dir }}"
+    remote_src: true
+    owner: "{{ github_runner_user }}"
+    group: "{{ github_runner_user }}"
+    creates: "{{ github_runner_install_dir }}/config.sh"
+  tags: github_runner
+
+- name: Install runner agent dependencies
+  ansible.builtin.command:
+    cmd: ./bin/installdependencies.sh
+    chdir: "{{ github_runner_install_dir }}"
+    creates: "{{ github_runner_install_dir }}/.deps_installed"
+  tags: github_runner
+
+- name: Mark runner dependencies as installed
+  ansible.builtin.file:
+    path: "{{ github_runner_install_dir }}/.deps_installed"
+    state: touch
+    owner: "{{ github_runner_user }}"
+    group: "{{ github_runner_user }}"
+    mode: "0644"
+  tags: github_runner
+
+- name: Add {{ github_runner_user }} to docker group
+  ansible.builtin.user:
+    name: "{{ github_runner_user }}"
+    groups: docker
+    append: true
+  tags: github_runner
+
+- name: Configure runner
+  ansible.builtin.command:
+    cmd: >
+      ./config.sh
+      --unattended
+      --url {{ github_runner_url }}
+      --token {{ github_runner_token }}
+      --name {{ github_runner_name }}
+      {% if github_runner_labels | length > 0 %}--labels {{ github_runner_labels }}{% endif %}
+      --replace
+    chdir: "{{ github_runner_install_dir }}"
+  become_user: "{{ github_runner_user }}"
+  when: not runner_configured.stat.exists
+  tags: github_runner
+
+- name: Check if runner service is already installed
+  ansible.builtin.stat:
+    path: "{{ github_runner_install_dir }}/.service"
+  register: runner_service
+  tags: github_runner
+
+- name: Install runner as systemd service
+  ansible.builtin.command:
+    cmd: ./svc.sh install {{ github_runner_user }}
+    chdir: "{{ github_runner_install_dir }}"
+  when: not runner_service.stat.exists
+  tags: github_runner
+
+- name: Read service name from remote .service file
+  ansible.builtin.slurp:
+    src: "{{ github_runner_install_dir }}/.service"
+  register: runner_service_file
+  tags: github_runner
+
+- name: Set service name fact
+  ansible.builtin.set_fact:
+    _runner_service: "{{ runner_service_file.content | b64decode | trim }}"
+  tags: github_runner
+
+- name: Create systemd drop-in directory for runner service
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ _runner_service }}.d"
+    state: directory
+    mode: "0755"
+  tags: github_runner
+
+- name: Add docker group to runner service via drop-in
+  ansible.builtin.copy:
+    dest: "/etc/systemd/system/{{ _runner_service }}.d/docker-group.conf"
+    content: |
+      [Service]
+      SupplementaryGroups=docker
+    mode: "0644"
+  notify: Restart github runner service
+  tags: github_runner
+
+- name: Ensure runner service is started and enabled
+  ansible.builtin.systemd:
+    name: "{{ _runner_service }}"
+    state: started
+    enabled: true
+    daemon_reload: true
+  tags: github_runner

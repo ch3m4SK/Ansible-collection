@@ -1,0 +1,11 @@
+---
+github_runner_version: "2.333.1"
+github_runner_arch: "linux-x64"
+github_runner_checksum: "18f8f68ed1892854ff2ab1bab4fcaa2f5abeedc98093b6cb13638991725cab74"
+github_runner_user: "chema"
+github_runner_install_dir: "/home/{{ github_runner_user }}/actions-runner"
+github_runner_name: "{{ inventory_hostname }}"
+github_runner_labels: ""
+github_runner_node_version: "20"
+# github_runner_url and github_runner_token must be passed at runtime:
+#   --extra-vars "github_runner_url=https://github.com/org/repo github_runner_token=TOKEN"

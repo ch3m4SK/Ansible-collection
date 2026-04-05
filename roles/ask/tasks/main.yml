@@ -1,0 +1,15 @@
+---
+# Generic input role. Call with include_role passing these vars:
+#   ask_var:     name of the fact to set
+#   ask_prompt:  question to show the user
+#   ask_private: true to hide input (default false)
+
+- name: "Prompt: {{ ask_prompt }}"
+  ansible.builtin.pause:
+    prompt: "{{ ask_prompt }}"
+    echo: "{{ not (ask_private | default(false)) }}"
+  register: _ask_result
+
+- name: "Set fact: {{ ask_var }}"
+  ansible.builtin.set_fact:
+    "{{ ask_var }}": "{{ _ask_result.user_input }}"
