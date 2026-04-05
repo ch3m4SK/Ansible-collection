@@ -1,5 +1,5 @@
 ---
-docker_install_users: [chema]
+docker_install_users: ["{{ ansible_user }}"]
 docker_install_edition: ce
 docker_install_packages:
   - "docker-{{ docker_install_edition }}"
