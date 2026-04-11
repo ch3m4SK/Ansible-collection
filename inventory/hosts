@@ -1,6 +1,5 @@
 [machines]
-github-runner
-
+all
 [machines:vars]
 ansible_user=chema
 ansible_python_interpreter=/usr/bin/python3
