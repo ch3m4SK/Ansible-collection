@@ -1,6 +1,6 @@
 ---
 - name: Machine Setup
-  hosts: machines
+  hosts: all
   become: true
 
   roles:
