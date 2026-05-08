@@ -10,3 +10,5 @@
       tags: docker_install
     - role: github_runner
       tags: github_runner
+    - role: zabbix_agent
+      tags: zabbix_agent

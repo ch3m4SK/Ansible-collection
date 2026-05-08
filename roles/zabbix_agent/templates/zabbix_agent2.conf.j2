@@ -1,0 +1,11 @@
+PidFile=/run/zabbix/zabbix_agent2.pid
+LogFile=/var/log/zabbix/zabbix_agent2.log
+LogFileSize=0
+
+Server={{ zabbix_server_ip }}
+ServerActive={{ zabbix_server_ip }}
+Hostname={{ ansible_hostname }}
+HostMetadata={{ zabbix_agent_host_metadata }}
+
+# Docker plugin
+Plugins.Docker.Endpoint=unix:///var/run/docker.sock

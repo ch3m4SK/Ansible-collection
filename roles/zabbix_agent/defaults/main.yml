@@ -1,0 +1,4 @@
+---
+zabbix_version: "7.0"
+zabbix_server_ip: "172.20.20.234"
+zabbix_agent_host_metadata: "Linux Docker"

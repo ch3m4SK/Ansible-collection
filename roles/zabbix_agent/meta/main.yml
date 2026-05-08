@@ -1,0 +1,6 @@
+---
+galaxy_info:
+  author: chema
+  description: Installs and configures Zabbix Agent 2 with Docker monitoring
+  min_ansible_version: "2.9"
+dependencies: []
